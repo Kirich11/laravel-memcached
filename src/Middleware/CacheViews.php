@@ -1,14 +1,15 @@
 <?php
 
-namespace Kirich\LaravelMemcahced\Middleware;
+namespace Kirich\LaravelMemcached\Middleware;
 
 use Closure;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use Kirich\LaravelMemcahced\Services\Cache\MemcachedService;
+use Kirich\LaravelMemcached\Services\Cache\MemcachedService;
 use Throwable;
 use Illuminate\Http\Response;
-use Kirich\LaravelMemcahced\Services\Serialization\SerializerService;
+use Kirich\LaravelMemcached\Services\Serialization\SerializerService;
 
 class CacheViews
 {
@@ -17,29 +18,19 @@ class CacheViews
         if (env('APP_ENV') != 'production') {
             return $next($request);
         } else {
-            $memcached = new MemcachedService();
+            $memcached = app('MemcachedService');
             $seriazer = new SerializerService();
             $fullUrl = $this->clearUrlFromCachePrefix($request);
-    
-            try {
-                /** @var Response $response */
-                $response = $next($request);
-            } catch (Throwable $t) {
-                Log::error($t->getFile() . ' on line ' . $t->getLine() . ' ' . $response->getStatusCode() . ' ' . $t->getMessage());
 
-                // Check for 50X errors
-                if ($this->isCritical($response->getStatusCode())) {
-                    $backup = $memcached->get($fullUrl, false);
-                    if (!empty($backup)) {
-                        $backup = $seriazer->unserialize($backup);
-                        return $backup;
-                    }
+            /** @var Response $response */
+            $response = $next($request);
 
-                    return $response;
+            if ($this->isCritical($response->getStatusCode())) {
+                $backup = $memcached->get($fullUrl, false);
+                if (!empty($backup)) {
+                    $backup = $seriazer->unserialize($backup);
+                    return $backup;
                 }
-
-                $cache = $seriazer->serialize($response);
-                $memcached->add($fullUrl, $cache);
 
                 return $response;
             }
@@ -73,7 +64,7 @@ class CacheViews
 
         $question = $request->getBaseUrl().$request->getPathInfo() === '/' ? '/?' : '?';
 
-        return $query ? $request->getScheme().'://'.$domain.$question.$query : $request->getScheme().'://'.$domain;
+        return $query ? $request->getScheme().'://'.$domain.$request->getPathInfo().$question.$query : $request->getScheme().'://'.$domain.$request->getPathInfo();
     }
 
     protected function checkNoCache(string $url): bool
