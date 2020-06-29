@@ -1,8 +1,9 @@
 <?php
 
-namespace Kirich\LaravelMemcahced\Providers;
+namespace Kirich\LaravelMemcached\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Kirich\LaravelMemcached\Services\Cache\MemcachedService;
 
 class MemcachedServiceProvider extends ServiceProvider
 {
@@ -13,7 +14,9 @@ class MemcachedServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        //
+        $this->app->singleton('MemcachedService', function ($app) {
+            return new MemcachedService();
+        });
     }
 
     /**
@@ -24,7 +27,7 @@ class MemcachedServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->publishes([
-            __DIR__.'../config/memcached.php' => config_path('memcached.php'),
+            __DIR__.'/../config/memcached.php' => config_path('memcached.php'),
         ]);
     }
 }

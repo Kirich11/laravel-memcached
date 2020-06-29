@@ -1,6 +1,6 @@
 <?php
 
-namespace Kirich\LaravelMemcahced\Services\Serialization;
+namespace Kirich\LaravelMemcached\Services\Serialization;
 
 use Illuminate\Http\Response;
 
@@ -32,6 +32,6 @@ class SerializerService implements SerializerInterface
 
     protected function buildResponse(array $responseParams): Response
     {
-        return new Response($responseParams['content'], $responseParams['statusCode'], $responseParams['headers']);
+        return new Response($responseParams['content'], $responseParams['statusCode'], $responseParams['headers']->all());
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace Kirich\LaravelMemcahced\Services\Cache;
+namespace Kirich\LaravelMemcached\Services\Cache;
 
 use Exception;
 use Illuminate\Support\Facades\Config;
@@ -22,14 +22,14 @@ class MemcachedService implements CacheInterface
         $this->backup = new \Memcached('backup');
         if (count($this->primary->getServerList()) < 1) {
             $this->primary->addServer(
-                $config['servers']['primary']['server'],
+                $config['servers']['primary']['host'],
                 $config['servers']['primary']['port'],
                 $config['servers']['primary']['weight']
             );
         }
         if (count($this->backup->getServerList()) < 1) {
             $this->backup->addServer(
-                $config['servers']['backup']['server'],
+                $config['servers']['backup']['host'],
                 $config['servers']['backup']['port'],
                 $config['servers']['backup']['weight']
             );
@@ -63,7 +63,7 @@ class MemcachedService implements CacheInterface
     /**
      * @inheritdoc
      */
-    public function get(string $url, bool $isPrimary = true)
+    public function get(string $url, bool $isPrimary = true) : string
     {
         if ($isPrimary) {
             $cache = $this->primary->get($url);

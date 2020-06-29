@@ -1,6 +1,6 @@
 <?php
 
-namespace Kirich\LaravelMemcahced\Services\Serialization;
+namespace Kirich\LaravelMemcached\Services\Serialization;
 
 use Illuminate\Http\Response;
 
